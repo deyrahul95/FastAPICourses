@@ -1,0 +1,33 @@
+@BaseAddress = http://127.0.0.1:8000/api/todos
+
+### Get All Todos
+GET {{BaseAddress}}?limit=2 HTTP/1.1
+Accept: application/json
+
+
+### Get single Todo
+GET {{BaseAddress}}/6 HTTP/1.1
+Accept: application/json
+
+
+### Create Todo
+POST {{BaseAddress}} HTTP/1.1
+Content-Type: application/json
+
+{
+    "name": "Test 2",
+    "description": "Test for two",
+    "priority": 2
+}
+
+### Update Todo
+PUT {{BaseAddress}}/6 HTTP/1.1
+Content-Type: application/json
+
+{
+    "name": "Update Test 2",
+    "priority": 3
+}
+
+### Delete Todo
+DELETE {{BaseAddress}}/6 HTTP/1.1
