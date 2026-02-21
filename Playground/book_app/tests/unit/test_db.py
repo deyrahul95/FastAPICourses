@@ -22,13 +22,13 @@ class TestDatabaseFunctions(unittest.TestCase):
     def test_get_all_books_returns_all(self):
         """Test that get_all_books returns all books when no filter."""
         books = get_all_books()
-        self.assertEqual(len(books), 5)
+        self.assertEqual(len(books), 50)
         self.assertEqual(books[0].title, "Atomic Habits")
 
     def test_get_all_books_with_category_filter(self):
         """Test filtering books by category (case-insensitive)."""
         books = get_all_books("self-help")
-        self.assertEqual(len(books), 2)
+        self.assertEqual(len(books), 10)
         for book in books:
             self.assertEqual(book.category.casefold(), "self-help")
 
@@ -133,9 +133,9 @@ class TestDatabaseFunctions(unittest.TestCase):
                 category="Test",
             )
         )
-        self.assertEqual(len(BOOKS), 6)
+        self.assertEqual(len(BOOKS), 51)
         reset_books()
-        self.assertEqual(len(BOOKS), 5)
+        self.assertEqual(len(BOOKS), 50)
 
 
 if __name__ == "__main__":

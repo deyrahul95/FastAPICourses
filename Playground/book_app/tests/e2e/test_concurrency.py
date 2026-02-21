@@ -26,7 +26,7 @@ class TestConcurrency(unittest.TestCase):
 
         def send_request(results: List[int], index: int) -> None:
             response = self.client.post(
-                "/books",
+                "/api/books",
                 json={
                     "title": "Concurrent Test Book",
                     "author": "Test Author",
@@ -62,12 +62,12 @@ class TestConcurrency(unittest.TestCase):
         """Test concurrent read and write operations."""
 
         def read_books(results: List[int]) -> None:
-            response = self.client.get("/books")
+            response = self.client.get("/api/books")
             results.append(len(response.json()))
 
         def write_book() -> None:
             self.client.post(
-                "/books",
+                "/api/books",
                 json={
                     "title": "Concurrent Book",
                     "author": "Author",
@@ -78,7 +78,7 @@ class TestConcurrency(unittest.TestCase):
         results: List[int] = []
         threads: List[threading.Thread] = []
 
-        initial_count = 5
+        initial_count = 50
 
         for _ in range(5):
             thread = threading.Thread(target=read_books, args=(results,))
