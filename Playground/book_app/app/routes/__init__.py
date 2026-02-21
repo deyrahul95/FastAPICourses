@@ -16,7 +16,7 @@ from app.db import (
 
 logger = logging.getLogger(__name__)
 
-router = APIRouter(prefix="/books", tags=["Book"])
+router = APIRouter(prefix="/api/books", tags=["Book"])
 
 
 @router.get(
