@@ -1,0 +1,416 @@
+{% extends "layout.html" %}
+
+{% block title %}Admin Dashboard - BookStore{% endblock %}
+
+{% block extra_css %}
+<style>
+    .admin-sidebar {
+        background-color: var(--bg-secondary);
+        border-right: 1px solid var(--border-color);
+        min-height: calc(100vh - 72px);
+        padding: 0;
+    }
+
+    .admin-nav-link {
+        display: block;
+        padding: 1rem 1.5rem;
+        color: var(--text-secondary);
+        text-decoration: none;
+        border-left: 3px solid transparent;
+        transition: all 0.2s;
+    }
+
+    .admin-nav-link:hover, .admin-nav-link.active {
+        background-color: var(--bg-card);
+        color: var(--text-primary);
+        border-left-color: var(--text-primary);
+    }
+
+    .admin-header {
+        background-color: var(--bg-secondary);
+        border-bottom: 1px solid var(--border-color);
+        padding: 1rem 0;
+    }
+
+    .stats-card {
+        background-color: var(--bg-card);
+        border: 1px solid var(--border-color);
+        border-radius: 8px;
+        padding: 1.5rem;
+    }
+
+    .stats-number {
+        font-family: 'Playfair Display', serif;
+        font-size: 2.5rem;
+        font-weight: 700;
+    }
+
+    .stats-label {
+        color: var(--text-secondary);
+        font-size: 0.875rem;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+    }
+
+    .admin-table {
+        width: 100%;
+        border-collapse: collapse;
+    }
+
+    .admin-table th {
+        text-align: left;
+        padding: 1rem;
+        border-bottom: 1px solid var(--border-color);
+        color: var(--text-secondary);
+        font-size: 0.75rem;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        font-weight: 500;
+    }
+
+    .admin-table td {
+        padding: 1rem;
+        border-bottom: 1px solid var(--border-color);
+    }
+
+    .admin-table tr:hover {
+        background-color: var(--bg-card);
+    }
+
+    .btn-action {
+        padding: 0.375rem 0.75rem;
+        font-size: 0.875rem;
+        border: 1px solid var(--border-color);
+        background-color: transparent;
+        color: var(--text-secondary);
+        cursor: pointer;
+        transition: all 0.2s;
+        text-decoration: none;
+        display: inline-block;
+    }
+
+    .btn-action:hover {
+        background-color: var(--text-primary);
+        color: var(--bg-primary);
+        border-color: var(--text-primary);
+    }
+
+    .btn-action.delete:hover {
+        background-color: #dc3545;
+        border-color: #dc3545;
+        color: white;
+    }
+
+    .modal-content {
+        background-color: var(--bg-card);
+        border: 1px solid var(--border-color);
+    }
+
+    .modal-header {
+        border-bottom: 1px solid var(--border-color);
+        padding: 1.5rem;
+    }
+
+    .modal-title {
+        font-family: 'Playfair Display', serif;
+    }
+
+    .modal-body {
+        padding: 1.5rem;
+    }
+
+    .modal-footer {
+        border-top: 1px solid var(--border-color);
+        padding: 1rem 1.5rem;
+    }
+
+    .btn-close {
+        filter: invert(1);
+    }
+
+    .form-label {
+        color: var(--text-secondary);
+        font-size: 0.875rem;
+        margin-bottom: 0.5rem;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="admin-header">
+    <div class="container-fluid px-4">
+        <div class="d-flex justify-content-between align-items-center">
+            <h4 class="mb-0" style="font-family: 'Playfair Display', serif;">Admin Dashboard</h4>
+            <div>
+                <a href="/admin" class="btn-action me-2">Books</a>
+                <a href="/" class="btn-action">View Site</a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="container-fluid px-4 py-4">
+    <div class="row g-4 mb-4">
+        <div class="col-md-4">
+            <div class="stats-card">
+                <div class="stats-number">{{ total_books }}</div>
+                <div class="stats-label">Total Books</div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="stats-card">
+                <div class="stats-number">{{ categories|length }}</div>
+                <div class="stats-label">Categories</div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="stats-card d-flex align-items-center justify-content-between">
+                <div>
+                    <div class="stats-number" style="font-size: 1.5rem;">Add New Book</div>
+                    <div class="stats-label">Create a new book entry</div>
+                </div>
+                <button class="btn btn-primary-custom" data-bs-toggle="modal" data-bs-target="#createModal">
+                    + Add Book
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-12">
+            <div class="stats-card">
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <h5 class="mb-0" style="font-family: 'Playfair Display', serif;">All Books</h5>
+                    <input type="text" class="search-box" id="searchInput" placeholder="Search books..." style="max-width: 300px;">
+                </div>
+                <div style="overflow-x: auto;">
+                    <table class="admin-table" id="booksTable">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Title</th>
+                                <th>Author</th>
+                                <th>Category</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for book in books %}
+                            <tr data-book-id="{{ book.id }}">
+                                <td>#{{ book.id }}</td>
+                                <td><strong>{{ book.title }}</strong></td>
+                                <td>{{ book.author }}</td>
+                                <td><span class="book-category">{{ book.category }}</span></td>
+                                <td>
+                                    <button class="btn-action me-2" 
+                                            data-bs-toggle="modal" 
+                                            data-bs-target="#editModal"
+                                            data-id="{{ book.id }}"
+                                            data-title="{{ book.title }}"
+                                            data-author="{{ book.author }}"
+                                            data-category="{{ book.category }}">
+                                        Edit
+                                    </button>
+                                    <button class="btn-action delete" 
+                                            data-bs-toggle="modal" 
+                                            data-bs-target="#deleteModal"
+                                            data-id="{{ book.id }}"
+                                            data-title="{{ book.title }}">
+                                        Delete
+                                    </button>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Create Modal -->
+<div class="modal fade" id="createModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Add New Book</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form id="createForm">
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label">Title</label>
+                        <input type="text" class="form-control search-box" name="title" required minlength="5" maxlength="100" placeholder="Enter book title">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Author</label>
+                        <input type="text" class="form-control search-box" name="author" required minlength="2" maxlength="50" placeholder="Enter author name">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Category</label>
+                        <select class="form-select search-box" name="category" required>
+                            <option value="">Select category</option>
+                            {% for cat in categories %}
+                            <option value="{{ cat }}">{{ cat }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn-action" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-primary-custom">Create Book</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Edit Modal -->
+<div class="modal fade" id="editModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Edit Book</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form id="editForm">
+                <div class="modal-body">
+                    <input type="hidden" name="book_id" id="editBookId">
+                    <div class="mb-3">
+                        <label class="form-label">Title</label>
+                        <input type="text" class="form-control search-box" name="title" id="editTitle" required minlength="5" maxlength="100">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Author</label>
+                        <input type="text" class="form-control search-box" name="author" id="editAuthor" required minlength="2" maxlength="50">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Category</label>
+                        <select class="form-select search-box" name="category" id="editCategory" required>
+                            {% for cat in categories %}
+                            <option value="{{ cat }}">{{ cat }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn-action" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-primary-custom">Save Changes</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Delete Modal -->
+<div class="modal fade" id="deleteModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Delete Book</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p>Are you sure you want to delete <strong id="deleteBookTitle"></strong>?</p>
+                <p class="text-secondary small">This action cannot be undone.</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn-action" data-bs-dismiss="modal">Cancel</button>
+                <form id="deleteForm">
+                    <input type="hidden" name="book_id" id="deleteBookId">
+                    <button type="submit" class="btn-action delete">Delete</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Search functionality
+    document.getElementById('searchInput').addEventListener('input', function(e) {
+        const query = e.target.value.toLowerCase();
+        const rows = document.querySelectorAll('#booksTable tbody tr');
+        rows.forEach(row => {
+            const text = row.textContent.toLowerCase();
+            row.style.display = text.includes(query) ? '' : 'none';
+        });
+    });
+
+    // Edit modal
+    const editModal = document.getElementById('editModal');
+    editModal.addEventListener('show.bs.modal', function(event) {
+        const button = event.relatedTarget;
+        document.getElementById('editBookId').value = button.dataset.id;
+        document.getElementById('editTitle').value = button.dataset.title;
+        document.getElementById('editAuthor').value = button.dataset.author;
+        document.getElementById('editCategory').value = button.dataset.category;
+    });
+
+    // Delete modal
+    const deleteModal = document.getElementById('deleteModal');
+    deleteModal.addEventListener('show.bs.modal', function(event) {
+        const button = event.relatedTarget;
+        document.getElementById('deleteBookId').value = button.dataset.id;
+        document.getElementById('deleteBookTitle').textContent = button.dataset.title;
+    });
+
+    // Create form submission
+    document.getElementById('createForm').addEventListener('submit', async function(e) {
+        e.preventDefault();
+        const formData = new FormData(this);
+        const data = Object.fromEntries(formData);
+        
+        const response = await fetch('/api/books', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify(data)
+        });
+
+        if (response.ok) {
+            location.reload();
+        } else {
+            alert('Error creating book');
+        }
+    });
+
+    // Edit form submission
+    document.getElementById('editForm').addEventListener('submit', async function(e) {
+        e.preventDefault();
+        const formData = new FormData(this);
+        const data = Object.fromEntries(formData);
+        const bookId = data.book_id;
+        delete data.book_id;
+
+        const response = await fetch(`/api/books/${bookId}`, {
+            method: 'PUT',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify(data)
+        });
+
+        if (response.ok) {
+            location.reload();
+        } else {
+            alert('Error updating book');
+        }
+    });
+
+    // Delete form submission
+    document.getElementById('deleteForm').addEventListener('submit', async function(e) {
+        e.preventDefault();
+        const bookId = document.getElementById('deleteBookId').value;
+
+        const response = await fetch(`/api/books/${bookId}`, {
+            method: 'DELETE'
+        });
+
+        if (response.ok) {
+            location.reload();
+        } else {
+            alert('Error deleting book');
+        }
+    });
+</script>
+{% endblock %}

@@ -74,3 +74,19 @@ async def book_detail(request: Request, book_id: int):
         "book_detail.html",
         {"request": request, "book": book},
     )
+
+
+@router.get("/admin", response_class=HTMLResponse)
+async def admin_dashboard(request: Request):
+    """Admin dashboard for managing books."""
+    books = get_all_books()
+    categories = get_categories()
+    return templates.TemplateResponse(
+        "admin/dashboard.html",
+        {
+            "request": request,
+            "books": books,
+            "categories": categories,
+            "total_books": len(books),
+        },
+    )

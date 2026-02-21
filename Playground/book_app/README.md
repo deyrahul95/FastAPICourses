@@ -1,11 +1,13 @@
 # Book API
 
-A FastAPI-based RESTful API for managing books with CRUD operations, comprehensive testing, and JSON logging.
+A FastAPI-based RESTful API for managing books with CRUD operations, comprehensive testing, JSON logging, and a modern UI.
 
 ## Features
 
 - RESTful API with FastAPI
-- In-memory database storage
+- Modern UI with Jinja2 templates (Bootstrap 5)
+- Admin dashboard for managing books
+- In-memory database storage (50 books)
 - Comprehensive unit and E2E tests (62 tests)
 - JSON file logging with daily rotation
 - Concurrent request handling with thread-safe ID generation
@@ -18,21 +20,28 @@ pip install fastapi uvicorn pydantic
 
 # Run the server
 uvicorn app:app --reload --host 0.0.0.0 --port 8000
-
-# Run tests
-python -m unittest discover -s tests -p "test_*.py"
 ```
+
+## Pages
+
+| URL | Description |
+|-----|-------------|
+| `/` | Home page with featured books |
+| `/books` | Browse all books with search & filters |
+| `/books/{id}` | Book detail page |
+| `/admin` | Admin dashboard for CRUD operations |
+| `/docs` | OpenAPI documentation |
 
 ## API Endpoints
 
 | Method | Endpoint | Description |
 |--------|----------|-------------|
-| GET | `/books` | Get all books (optional `?category=` filter) |
-| GET | `/books/{title}` | Get book by title (case-insensitive) |
-| GET | `/books/{book_id:int}/details` | Get book by ID |
-| POST | `/books` | Create a new book |
-| PUT | `/books/{book_id}` | Update a book |
-| DELETE | `/books/{book_id}` | Delete a book |
+| GET | `/api/books` | Get all books (optional `?category=` filter) |
+| GET | `/api/books/{title}` | Get book by title (case-insensitive) |
+| GET | `/api/books/{book_id:int}/details` | Get book by ID |
+| POST | `/api/books` | Create a new book |
+| PUT | `/api/books/{book_id}` | Update a book |
+| DELETE | `/api/books/{book_id}` | Delete a book |
 
 ## Project Structure
 
@@ -41,8 +50,12 @@ book_app/
 ├── app/
 │   ├── __init__.py       # FastAPI app & logging setup
 │   ├── models/           # Pydantic models
-│   ├── routes/           # API endpoints
-│   └── db/              # In-memory database
+│   ├── routes/
+│   │   ├── __init__.py   # API routes (/api/books)
+│   │   └── ui.py         # UI routes (/, /books, /admin)
+│   ├── db/              # In-memory database
+│   └── templates/       # Jinja2 HTML templates
+│       └── admin/        # Admin dashboard
 ├── tests/
 │   ├── unit/            # Unit tests (models, db)
 │   └── e2e/             # E2E tests (API, concurrency)
