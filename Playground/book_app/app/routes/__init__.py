@@ -25,34 +25,13 @@ router = APIRouter(prefix="/books", tags=["Book"])
     response_model=list[Book],
 )
 def get_all_books(category: Optional[str] = None) -> list[Book]:
-    logger.info("Retrieving books from database...")
+    """Retrieve all books from the database, optionally filtered by category."""
+    logger.info("Retrieving books from database")
 
     books = db_get_all_books(category)
 
-    logger.info(f"Books retrieved successfully. Count: {len(books)}")
+    logger.info(f"Retrieved {len(books)} book(s)")
     return books
-
-
-@router.get(
-    "/{title:str}",
-    status_code=status.HTTP_200_OK,
-    response_model=Book,
-)
-def get_book(title: str) -> Book:
-    logger.info(f"Retrieving book with title: {title}...")
-
-    book = db_get_book_by_title(title)
-    if book:
-        logger.info(
-            f"Book found with title: {title}. Id: {book.id}, Author: {book.author}"
-        )
-        return book
-
-    logger.info(f"No book found with title: {title} in our database")
-    raise HTTPException(
-        status_code=status.HTTP_404_NOT_FOUND,
-        detail=f"No book found with title: {title} in our database",
-    )
 
 
 @router.get(
@@ -61,18 +40,40 @@ def get_book(title: str) -> Book:
     response_model=Book,
 )
 def get_book_details(book_id: int) -> Book:
-    logger.info(f"Retrieving book with id: {book_id}...")
+    """Retrieve a book by its unique ID."""
+    logger.info(f"Retrieving book with id: {book_id}")
 
     book = db_get_book_by_id(book_id)
-    if book:
-        logger.info(f"Book found successfully. Id: {book.id}, Title: {book.title}")
-        return book
+    if not book:
+        logger.warning(f"Book not found with id: {book_id}")
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Book with id: {book_id} not found",
+        )
 
-    logger.info(f"No book found with id: {book_id} in our database")
-    raise HTTPException(
-        status_code=status.HTTP_404_NOT_FOUND,
-        detail=f"No book found with id: {book_id} in our database",
-    )
+    logger.info(f"Retrieved book: id={book.id}, title={book.title}")
+    return book
+
+
+@router.get(
+    "/{title:str}",
+    status_code=status.HTTP_200_OK,
+    response_model=Book,
+)
+def get_book(title: str) -> Book:
+    """Retrieve a book by its title (case-insensitive)."""
+    logger.info(f"Retrieving book with title: {title}")
+
+    book = db_get_book_by_title(title)
+    if not book:
+        logger.warning(f"Book not found with title: {title}")
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Book with title: {title} not found",
+        )
+
+    logger.info(f"Retrieved book: id={book.id}, title={book.title}")
+    return book
 
 
 @router.post(
@@ -81,8 +82,10 @@ def get_book_details(book_id: int) -> Book:
     response_model=Book,
 )
 async def create_book(request: AddBookDto = Body()) -> Book:
+    """Create a new book in the database."""
+    logger.info(f"Creating new book: title={request.title}, author={request.author}")
+
     book_id = await increment_book_id()
-    logger.info(f"Creating new book... Request: {request}")
     new_book = Book(
         id=book_id,
         title=request.title,
@@ -91,7 +94,8 @@ async def create_book(request: AddBookDto = Body()) -> Book:
         updated_at=datetime.now(),
     )
     db_create_book(new_book)
-    logger.info(f"Book created successfully. Book: {new_book}")
+
+    logger.info(f"Created book: id={new_book.id}, title={new_book.title}")
     return new_book
 
 
@@ -100,29 +104,27 @@ async def create_book(request: AddBookDto = Body()) -> Book:
     status_code=status.HTTP_204_NO_CONTENT,
 )
 def update_book(book_id: int, request: UpdateBookDto = Body()) -> None:
-    logger.info(f"Updating book ... BookId: {book_id}, Request: {request}")
+    """Update an existing book by its ID."""
+    logger.info(f"Updating book with id: {book_id}")
 
     existing_book = db_get_book_by_id(book_id)
     if not existing_book:
-        logger.info(f"Book with id:{book_id} not found in database")
+        logger.warning(f"Book not found for update: id={book_id}")
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
-            detail=f"Book with id:{book_id} not found in database",
+            detail=f"Book with id: {book_id} not found",
         )
 
-    existing_book.title = (
-        request.title if request.title is not None else existing_book.title
-    )
-    existing_book.author = (
-        request.author if request.author is not None else existing_book.author
-    )
-    existing_book.category = (
-        request.category if request.category is not None else existing_book.category
-    )
+    if request.title is not None:
+        existing_book.title = request.title
+    if request.author is not None:
+        existing_book.author = request.author
+    if request.category is not None:
+        existing_book.category = request.category
     existing_book.updated_at = datetime.now()
 
     db_update_book(book_id, existing_book)
-    logger.info(f"Book updated successfully. Book: {existing_book}")
+    logger.info(f"Updated book: id={existing_book.id}, title={existing_book.title}")
 
 
 @router.delete(
@@ -130,14 +132,15 @@ def update_book(book_id: int, request: UpdateBookDto = Body()) -> None:
     status_code=status.HTTP_204_NO_CONTENT,
 )
 def delete_book(book_id: int) -> None:
-    logger.info(f"Deleting book with id: {book_id}...")
+    """Delete a book by its ID."""
+    logger.info(f"Deleting book with id: {book_id}")
 
     deleted = db_delete_book(book_id)
     if not deleted:
-        logger.info(f"Book with id:{book_id} not found in database")
+        logger.warning(f"Book not found for deletion: id={book_id}")
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
-            detail=f"Book with id:{book_id} not found in database",
+            detail=f"Book with id: {book_id} not found",
         )
 
-    logger.info("Book deleted successfully.")
+    logger.info(f"Deleted book with id: {book_id}")
