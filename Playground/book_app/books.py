@@ -24,6 +24,18 @@ class AddBookDto(BaseModel):
     category: str = Field(..., description="Book category", min_length=3, max_length=20)
 
 
+class UpdateBookDto(BaseModel):
+    title: Optional[str] = Field(
+        default=None, description="Book title", min_length=5, max_length=100
+    )
+    author: Optional[str] = Field(
+        default=None, description="Book author", min_length=2, max_length=50
+    )
+    category: Optional[str] = Field(
+        default=None, description="Book category", min_length=3, max_length=20
+    )
+
+
 BOOKS: list[Book] = [
     Book(id=1, title="Atomic Habits", author="James Clear", category="Self-Help"),
     Book(
@@ -51,7 +63,12 @@ async def increment_book_id() -> int:
         return book_id_iterator
 
 
-@app.get("/books", status_code=status.HTTP_200_OK, response_model=list[Book])
+@app.get(
+    "/books",
+    status_code=status.HTTP_200_OK,
+    response_model=list[Book],
+    tags=["Book"],
+)
 def get_all_books(category: Optional[str] = None) -> list[Book]:
     """Retrieve all books from database optionally filter by category"""
     logger.info("Retrieving books from database...")
@@ -68,7 +85,12 @@ def get_all_books(category: Optional[str] = None) -> list[Book]:
     return filter_books
 
 
-@app.get("/books/{title:str}", status_code=status.HTTP_200_OK, response_model=Book)
+@app.get(
+    "/books/{title:str}",
+    status_code=status.HTTP_200_OK,
+    response_model=Book,
+    tags=["Book"],
+)
 def get_book(title: str) -> Book:
     """Retrieve single book with search title"""
     logger.info(f"Retrieving book with title: {title}...")
@@ -87,7 +109,12 @@ def get_book(title: str) -> Book:
     )
 
 
-@app.post("/books", status_code=status.HTTP_201_CREATED, response_model=Book)
+@app.post(
+    "/books",
+    status_code=status.HTTP_201_CREATED,
+    response_model=Book,
+    tags=["Book"],
+)
 async def create_book(request: AddBookDto = Body()) -> Book:
     """Create and add new book into database"""
     id = await increment_book_id()
@@ -101,3 +128,29 @@ async def create_book(request: AddBookDto = Body()) -> Book:
     BOOKS.append(new_book)
     logger.info(f"Book created successfully. Book: {new_book}")
     return new_book
+
+
+@app.put(
+    "/books/{book_id:int}",
+    status_code=status.HTTP_204_NO_CONTENT,
+    tags=["Book"],
+)
+def update_book(book_id: int, request: UpdateBookDto = Body()) -> None:
+    """Update and save book details into database"""
+    logger.info(f"Updating book ... BookId: {book_id}, Request: {request}")
+    for book in BOOKS:
+        if book.id == book_id:
+            logger.info(f"Book fetched successfully. Book: {book}")
+            book.title = request.title if request.title is not None else book.title
+            book.author = request.author if request.author is not None else book.author
+            book.category = (
+                request.category if request.category is not None else book.category
+            )
+            logger.info(f"Book updated successfully. Book: {book}")
+            return
+
+    logger.info(f"Book with id:{book_id} not found in database")
+    raise HTTPException(
+        status_code=status.HTTP_404_NOT_FOUND,
+        detail=f"Book with id:{book_id} not found in database",
+    )
