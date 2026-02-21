@@ -2,6 +2,7 @@ import logging
 import asyncio
 from typing import Optional
 from pydantic import BaseModel, Field
+from datetime import datetime
 
 from fastapi import Body, FastAPI, status, HTTPException
 
@@ -16,6 +17,7 @@ class Book(BaseModel):
     title: str
     author: str
     category: str
+    updated_at: datetime = datetime.now()
 
 
 class AddBookDto(BaseModel):
@@ -109,6 +111,28 @@ def get_book(title: str) -> Book:
     )
 
 
+@app.get(
+    "/books/{book_id:int}/details",
+    status_code=status.HTTP_200_OK,
+    response_model=Book,
+    tags=["Book"],
+)
+def get_book_details(book_id: int) -> Book:
+    """Retrieve book details by it's id"""
+    logger.info(f"Retrieving book with id: {book_id}...")
+
+    for book in BOOKS:
+        if book.id == book_id:
+            logger.info(f"Book found successfully. Id: {book.id}, Title: {book.title}")
+            return book
+
+    logger.info(f"No book found with id: {book_id} in our database")
+    raise HTTPException(
+        status_code=status.HTTP_404_NOT_FOUND,
+        detail=f"No book found with id: {book_id} in our database",
+    )
+
+
 @app.post(
     "/books",
     status_code=status.HTTP_201_CREATED,
@@ -124,6 +148,7 @@ async def create_book(request: AddBookDto = Body()) -> Book:
         title=request.title,
         author=request.author,
         category=request.category,
+        updated_at=datetime.now(),
     )
     BOOKS.append(new_book)
     logger.info(f"Book created successfully. Book: {new_book}")
@@ -146,7 +171,30 @@ def update_book(book_id: int, request: UpdateBookDto = Body()) -> None:
             book.category = (
                 request.category if request.category is not None else book.category
             )
+            book.updated_at = datetime.now()
             logger.info(f"Book updated successfully. Book: {book}")
+            return
+
+    logger.info(f"Book with id:{book_id} not found in database")
+    raise HTTPException(
+        status_code=status.HTTP_404_NOT_FOUND,
+        detail=f"Book with id:{book_id} not found in database",
+    )
+
+
+@app.delete(
+    "/books/{book_id:int}",
+    status_code=status.HTTP_204_NO_CONTENT,
+    tags=["Book"],
+)
+def delete_book(book_id: int) -> None:
+    """delete book from database"""
+    logger.info(f"Deleting book with id: {book_id}...")
+    for i in range(len(BOOKS)):
+        book = BOOKS[i]
+        if book.id == book_id:
+            BOOKS.pop(i)
+            logger.info(f"Book deleted successfully. Deleted Book: {book}")
             return
 
     logger.info(f"Book with id:{book_id} not found in database")
