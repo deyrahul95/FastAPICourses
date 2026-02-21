@@ -1,0 +1,58 @@
+{% extends "layout.html" %}
+
+{% block title %}BookStore - Modern Book Collection{% endblock %}
+
+{% block content %}
+<div class="hero-section">
+    <div class="container">
+        <div class="row align-items-center">
+            <div class="col-lg-7">
+                <h1 class="hero-title">Discover Your<br>Next Great Read</h1>
+                <p class="hero-subtitle">Explore our curated collection of influential books that transform thinking, inspire action, and shape perspectives.</p>
+                <a href="/books" class="btn btn-primary-custom mt-3">Browse Collection</a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="container my-5">
+    <div class="row mb-4">
+        <div class="col-12 d-flex justify-content-between align-items-center">
+            <h2 class="section-title mb-0">Featured Books</h2>
+            <a href="/books" class="back-link">View All &rarr;</a>
+        </div>
+    </div>
+    <div class="row g-4">
+        {% for book in featured_books %}
+        <div class="col-md-6 col-lg-4">
+            <div class="book-card">
+                <div class="book-card-body">
+                    <div class="d-flex justify-content-between align-items-start mb-2">
+                        <span class="book-category">{{ book.category }}</span>
+                        <span class="book-id">#{{ book.id }}</span>
+                    </div>
+                    <h3 class="book-title">
+                        <a href="/books/{{ book.id }}">{{ book.title }}</a>
+                    </h3>
+                    <p class="book-author">by {{ book.author }}</p>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+
+<div class="container my-5 py-5">
+    <div class="row">
+        <div class="col-lg-8 mx-auto text-center">
+            <h2 class="section-title mb-3">Explore by Category</h2>
+            <p class="text-secondary mb-4">Filter books by category to find exactly what you're looking for.</p>
+            <div class="d-flex flex-wrap justify-content-center">
+                {% for category in categories %}
+                <a href="/books?category={{ category }}" class="category-badge">{{ category }}</a>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

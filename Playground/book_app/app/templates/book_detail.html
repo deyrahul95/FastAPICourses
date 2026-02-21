@@ -1,0 +1,62 @@
+{% extends "layout.html" %}
+
+{% block title %}{{ book.title }} - BookStore{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <nav aria-label="breadcrumb" class="mb-4">
+        <a href="/books" class="back-link">&larr; Back to Collection</a>
+    </nav>
+
+    <div class="row">
+        <div class="col-lg-8">
+            <div class="detail-card p-4 p-lg-5">
+                <div class="mb-4">
+                    <span class="book-category">{{ book.category }}</span>
+                </div>
+                
+                <h1 class="hero-title" style="font-size: 2.5rem; margin-bottom: 1rem;">{{ book.title }}</h1>
+                <p class="book-author" style="font-size: 1.25rem;">by {{ book.author }}</p>
+
+                <hr style="border-color: var(--border-color); margin: 2rem 0;">
+
+                <div class="row">
+                    <div class="col-md-6 mb-4">
+                        <p class="detail-label">Book ID</p>
+                        <p class="detail-value">#{{ book.id }}</p>
+                    </div>
+                    <div class="col-md-6 mb-4">
+                        <p class="detail-label">Category</p>
+                        <p class="detail-value">{{ book.category }}</p>
+                    </div>
+                    <div class="col-md-6 mb-4">
+                        <p class="detail-label">Last Updated</p>
+                        <p class="detail-value">{{ book.updated_at.strftime('%B %d, %Y') }}</p>
+                    </div>
+                    <div class="col-md-6 mb-4">
+                        <p class="detail-label">Added to Collection</p>
+                        <p class="detail-value">ID: {{ book.id }}</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-4 mt-4 mt-lg-0">
+            <div class="detail-card p-4">
+                <h5 class="mb-3" style="font-family: 'Playfair Display', serif;">Book Information</h5>
+                <p class="text-secondary small">This book is part of our curated collection of influential works.</p>
+                
+                <div class="mt-4">
+                    <a href="/books?category={{ book.category }}" class="btn btn-primary-custom w-100">
+                        More in {{ book.category }}
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="mt-5">
+        <a href="/books" class="back-link">&larr; Back to Collection</a>
+    </div>
+</div>
+{% endblock %}

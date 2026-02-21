@@ -8,6 +8,7 @@ from typing import AsyncGenerator
 
 from fastapi import FastAPI
 from app.routes import router as book_router
+from app.routes.ui import router as ui_router
 
 
 def setup_logging() -> logging.Logger:
@@ -81,6 +82,7 @@ def create_app() -> FastAPI:
     )
 
     app.include_router(book_router)
+    app.include_router(ui_router)
 
     return app
 
