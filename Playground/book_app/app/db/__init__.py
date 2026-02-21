@@ -1,25 +1,37 @@
 import asyncio
+import copy
 from typing import List, Optional
 
 from app.models import Book
 
 
-DEFAULT_BOOKS: List[Book] = [
-    Book(id=1, title="Atomic Habits", author="James Clear", category="Self-Help"),
-    Book(
-        id=2,
-        title="The Gifts of Imperfection",
-        author="Brené Brown",
-        category="Motivational",
-    ),
-    Book(
-        id=3, title="The Mountain Is You", author="Brianna Wiest", category="Self-Help"
-    ),
-    Book(id=4, title="The Daily Stoic", author="Ryan Holiday", category="Motivational"),
-    Book(id=5, title="Start With Why", author="Simon Sinek", category="Logical"),
-]
+def _create_default_books() -> List[Book]:
+    """Factory function to create fresh Book instances for default data."""
+    return [
+        Book(id=1, title="Atomic Habits", author="James Clear", category="Self-Help"),
+        Book(
+            id=2,
+            title="The Gifts of Imperfection",
+            author="Brené Brown",
+            category="Motivational",
+        ),
+        Book(
+            id=3,
+            title="The Mountain Is You",
+            author="Brianna Wiest",
+            category="Self-Help",
+        ),
+        Book(
+            id=4,
+            title="The Daily Stoic",
+            author="Ryan Holiday",
+            category="Motivational",
+        ),
+        Book(id=5, title="Start With Why", author="Simon Sinek", category="Logical"),
+    ]
 
-BOOKS: List[Book] = DEFAULT_BOOKS.copy()
+
+BOOKS: List[Book] = _create_default_books()
 book_id_iterator: int = 100
 lock = asyncio.Lock()
 
@@ -28,7 +40,7 @@ def reset_books() -> None:
     """Reset the in-memory database to its initial state. Used for testing."""
     global BOOKS, book_id_iterator
     BOOKS.clear()
-    BOOKS.extend(DEFAULT_BOOKS.copy())
+    BOOKS.extend(copy.deepcopy(_create_default_books()))
     book_id_iterator = 100
 
 
